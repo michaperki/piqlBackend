@@ -1,19 +1,22 @@
-from flask import Blueprint, render_template, request, redirect, url_for
-from app.models import Item  # Import the model from the app package
+from flask import Blueprint, request, jsonify
+from app.models import Item
+from app import db  # Import db directly from app/__init__.py
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
-def index():
+def get_items():
     items = Item.query.all()
-    return render_template('index.html', items=items)
+    item_list = [{"id": item.id, "name": item.name} for item in items]
+    return jsonify(item_list)
 
 @main_bp.route('/add_item', methods=['POST'])
 def add_item():
-    name = request.form['name']
+    data = request.get_json()  # Expect JSON data in the request body
+    name = data.get('name')
     if name:
-        db = current_app.config['db']  # Access the db object using current_app
         new_item = Item(name=name)
         db.session.add(new_item)
         db.session.commit()
-    return redirect(url_for('main.index'))
+        return jsonify({"message": "Item added successfully"})
+    return jsonify({"error": "Invalid input"}), 400  # Return a 400 Bad Request for invalid input
