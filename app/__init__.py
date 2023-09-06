@@ -12,9 +12,9 @@ def create_app():
 
     # Load configuration based on the environment
     if os.environ.get('FLASK_ENV') == 'testing':
-        app.config.from_object('app.config.development.TestingConfig')
+        app.config.from_object('app.config.testing.TestingConfig')
     else:
-        app.config.from_object('app.config.testing.DevelopmentConfig')
+        app.config.from_object('app.config.development.DevelopmentConfig')
 
     CORS(app)
     db.init_app(app)
