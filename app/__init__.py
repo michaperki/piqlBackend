@@ -11,10 +11,10 @@ def create_app():
     app = Flask(__name__)
 
     # Load configuration based on the environment
-    if os.environ.get('FLASK_ENV') == 'development':
-        app.config.from_object('app.config.development.DevelopmentConfig')
+    if os.environ.get('FLASK_ENV') == 'testing':
+        app.config.from_object('app.config.development.TestingConfig')
     else:
-        app.config.from_object('app.config.testing.TestingConfig')
+        app.config.from_object('app.config.testing.DevelopmentConfig')
 
     CORS(app)
     db.init_app(app)
