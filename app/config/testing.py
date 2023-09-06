@@ -2,4 +2,5 @@
 
 class TestingConfig:
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'your_testing_database_url_here'
+    SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"  # Use SQLite for testing
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

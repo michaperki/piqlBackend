@@ -8,8 +8,7 @@ from app.models import Item
 @pytest.fixture
 def client():
     # Create a test Flask app instance
-    app = create_app()
-    app.config['TESTING'] = True
+    app = create_app("testing")  # Specify the testing configuration
 
     # Create a test client to interact with the app
     client = app.test_client()
