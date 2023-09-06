@@ -3,7 +3,7 @@
 import json
 import pytest
 from app import create_app, db
-from app.models import Item
+from app.models import Item, User
 
 @pytest.fixture
 def client():
@@ -38,3 +38,23 @@ def test_get_items(client):
     assert response.status_code == 200
     assert len(data) == 1  # Assuming it's a list of items
     assert data[0]['name'] == "Test Item"
+
+def test_register_user(client):
+    # Create a test user data
+    user_data = {
+        "email": "test@example.com",
+        "password": "testpassword"
+    }
+
+    # Send a POST request to the registration route
+    response = client.post('/auth/register', json=user_data)
+    data = json.loads(response.data.decode())
+
+    # Check that the response indicates successful registration
+    assert response.status_code == 201
+    assert data["message"] == "Registration successful"
+
+    # Check that the user is saved in the database
+    with client.application.app_context():
+        user = User.query.filter_by(email="test@example.com").first()
+        assert user is not None
