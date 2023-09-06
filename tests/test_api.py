@@ -7,13 +7,13 @@ api_url = (
 )
 
 # Define the data you want to send in the request
-item = {"name": "Example Item"}
+item_data = {"name": "Example Item"}
 
 # Convert the item data to JSON
 headers = {"Content-Type": "application/json"}
 
 # Make a POST request to add the item
-response = requests.post(api_url, data=item, headers=headers)
+response = requests.post(api_url, data=json.dumps(item_data), headers=headers)
 
 # Check the response
 if response.status_code == 200:
