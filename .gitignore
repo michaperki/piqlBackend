@@ -2,4 +2,4 @@
 .env
 
 # Ignore venv directory (if you're using virtualenv)
-venv/
+venv/-
