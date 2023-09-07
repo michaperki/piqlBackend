@@ -21,6 +21,9 @@ def add_item():
         return jsonify({"message": "Item added successfully"})
     return jsonify({"error": "Invalid input"}), 400  # Return a 400 Bad Request for invalid input
 
-@main_bp.route('/static/images/<path:filename>')
+@main_bp.route('/images/<path:filename>')
 def serve_image(filename):
-    return send_from_directory('static/images', filename)
+    # Construct the path to the image in your static directory
+    image_path = os.path.join(app.root_path, 'static', 'images', filename)
+    # Serve the image
+    return send_file(image_path)
