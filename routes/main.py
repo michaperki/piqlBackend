@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Flask, Blueprint, request, jsonify, send_from_directory
 from app.models import Item
 from app import db  # Import db directly from app/__init__.py
 
@@ -20,3 +20,7 @@ def add_item():
         db.session.commit()
         return jsonify({"message": "Item added successfully"})
     return jsonify({"error": "Invalid input"}), 400  # Return a 400 Bad Request for invalid input
+
+@main_bp.route('/static/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory('static/images', filename)
