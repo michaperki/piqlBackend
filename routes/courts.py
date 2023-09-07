@@ -51,3 +51,14 @@ def create_court():
     
     # Return a success message
     return jsonify({"message": "Court created successfully"})
+
+@courts_bp.route('/courts/<int:court_id>', methods=['DELETE'])
+def delete_court(court_id):
+    court = db.session.get(Court, court_id)  # Use Session.get() instead of Query.get()
+
+    if court:
+        db.session.delete(court)
+        db.session.commit()
+        return jsonify({"message": "Court deleted successfully"})
+    else:
+        return jsonify({"error": "Court not found"}), 404  # Return a 404 Not Found for missing court

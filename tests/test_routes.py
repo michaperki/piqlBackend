@@ -3,7 +3,8 @@
 import json
 import pytest
 from app import create_app, db
-from app.models import Item, User, Court
+from app.models import Item, User, Court, Game
+from datetime import datetime
 
 @pytest.fixture
 def client():
@@ -150,4 +151,39 @@ def test_add_court(client):
     # Check that the response indicates successful court creation
     assert response.status_code == 200
     assert response.json["message"] == "Court created successfully"
-    
+
+def test_delete_court(client):
+    # Create a test court data
+    court_data = {
+        "name": "Test Court",
+        "address": "123 Main St",
+        "is_public": True,
+        "image_url": "test.jpg",
+        "number_of_courts": 3,
+    }
+
+    # Create a test court in the database
+    with client.application.app_context():
+        court = Court(**court_data)
+        db.session.add(court)
+        db.session.commit()
+
+    # Simulate an authenticated request by adding authentication headers
+    auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+
+    # Send a DELETE request to delete the court
+    response = client.delete('/api/courts/1', headers=auth_headers)
+
+    # Check that the response indicates successful court deletion
+    assert response.status_code == 200
+    assert response.json["message"] == "Court deleted successfully"
+
+    # Check that the court is removed from the database
+    with client.application.app_context():
+        court = db.session.get(Court, 1)  # Use Session.get() instead of Query.get()
+        assert court is None
+
+    # Attempt to delete a non-existent court should return a 404 error
+    response = client.delete('/api/courts/999', headers=auth_headers)
+    assert response.status_code == 404
+    assert response.json["error"] == "Court not found"
