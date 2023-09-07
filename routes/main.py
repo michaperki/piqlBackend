@@ -25,6 +25,6 @@ def add_item():
 @main_bp.route('/images/<path:filename>')
 def serve_image(filename):
     # Construct the path to the image in your static directory
-    image_path = os.path.join('app', 'static', 'images', filename)
+    image_path = os.path.join('static', 'images', filename)
     # Serve the image
     return send_file(image_path)
