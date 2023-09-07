@@ -28,9 +28,26 @@ def get_court(court_id):
         return jsonify(court_data)
     return jsonify({"error": "Court not found"}), 404  # Return a 404 Not Found for missing court
 
-# Add more routes for creating, updating, or deleting courts as needed (all requiring authentication)
-# Example:
-# @courts_bp.route('/courts', methods=['POST'])
-# @login_required
-# def create_court():
-#     # Add code to create a new court here
+@courts_bp.route('/courts', methods=['POST'])
+def create_court():
+    # Get the request data
+    data = request.get_json()
+    
+    # Extract the court information from the request data
+    court_data = {
+        "name": data.get("name"),
+        "address": data.get("address"),
+        "is_public": data.get("is_public"),
+        "image_url": data.get("image_url"),
+        "number_of_courts": data.get("number_of_courts"),
+    }
+    
+    # Create a new court using the extracted data
+    court = Court(**court_data)
+    
+    # Add the court to the database
+    db.session.add(court)
+    db.session.commit()
+    
+    # Return a success message
+    return jsonify({"message": "Court created successfully"})

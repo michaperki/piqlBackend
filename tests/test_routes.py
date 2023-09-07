@@ -132,3 +132,22 @@ def test_get_single_court(client):
 
     assert data["name"] == "Test Court"
     assert data["address"] == "123 Main St"
+    
+def test_add_court(client):
+    # Create a test court data
+    court_data = {
+        "name": "Test Court",
+        "address": "123 Main St",
+        "is_public": True,
+        "image_url": "test.jpg",
+        "number_of_courts": 3,
+    }
+
+    # Send a POST request to the courts route
+    auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+    response = client.post('/api/courts', json=court_data, headers=auth_headers)
+
+    # Check that the response indicates successful court creation
+    assert response.status_code == 200
+    assert response.json["message"] == "Court created successfully"
+    
