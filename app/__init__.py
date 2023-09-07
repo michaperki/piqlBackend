@@ -18,7 +18,7 @@ def create_app(config_name="development"):
     else:
         app.config.from_object('app.config.development.DevelopmentConfig')
 
-    CORS(app, resources={r"/auth/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={r"auth/*": {"origins": "http://localhost:3000"}})
     db.init_app(app)
     migrate = Migrate(app, db)
 
