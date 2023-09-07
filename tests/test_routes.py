@@ -58,3 +58,24 @@ def test_register_user(client):
     with client.application.app_context():
         user = User.query.filter_by(email="test@example.com").first()
         assert user is not None
+        
+def test_login_user(client):
+    # Create a test user
+    user = User(email="test@example.com", password="testpassword")
+    with client.application.app_context():
+        db.session.add(user)
+        db.session.commit()
+
+    # Create login credentials
+    login_data = {
+        "email": "test@example.com",
+        "password": "testpassword"
+    }
+
+    # Send a POST request to the login route
+    response = client.post('/auth/login', json=login_data)
+    data = json.loads(response.data.decode())
+
+    # Check that the response indicates successful login
+    assert response.status_code == 200
+    assert "access_token" in data

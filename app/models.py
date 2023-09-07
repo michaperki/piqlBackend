@@ -1,4 +1,5 @@
 from app import db
+from bcrypt import hashpw, gensalt
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -17,7 +18,14 @@ class User(db.Model):
 
     def __init__(self, email, password):
         self.email = email
-        self.password = password
+        self.password = self.hash_password(password)
+
+    def hash_password(self, password):
+        salt = gensalt()
+        return hashpw(password.encode('utf-8'), salt)
+
+    def check_password(self, password):
+        return hashpw(password.encode('utf-8'), self.password) == self.password
 
     def __repr__(self):
         return f'<User {self.email}>'

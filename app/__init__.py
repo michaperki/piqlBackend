@@ -2,7 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager  # Import JWTManager
+
 db = SQLAlchemy()
+jwt = JWTManager()  # Initialize JWTManager
 
 import os
 
@@ -18,6 +21,9 @@ def create_app(config_name="development"):
     CORS(app)
     db.init_app(app)
     migrate = Migrate(app, db)
+
+    # Initialize JWTManager for both main and test configurations
+    jwt.init_app(app)
     
     from routes.main import main_bp
     from routes.auth import auth_bp
