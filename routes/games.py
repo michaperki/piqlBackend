@@ -97,7 +97,7 @@ def get_games():
         "start_time": str(game.start_time),
         "end_time": str(game.end_time),
         "court_id": game.court_id,
-        #"player_ids": game.players
+        "player_ids": game.players
     } for game in games]
 
     return jsonify(game_list)
@@ -106,14 +106,14 @@ def get_games():
 @games_bp.route('/games/<int:game_id>', methods=['GET'])
 def get_game(game_id):
     game = Game.query.get(game_id)
-    if game:
+    if game:        
         game_data = {
             "id": game.id,
             "date": str(game.date),
             "start_time": str(game.start_time),
             "end_time": str(game.end_time),
             "court_id": game.court_id,
-            #"player_ids": game.players
+            "player_ids": game.players
         }
         return jsonify(game_data)
     return jsonify({"error": "Game not found"}), 404  # Return a 404 Not Found for missing game
