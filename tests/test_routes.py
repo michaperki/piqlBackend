@@ -271,3 +271,49 @@ def test_create_game(client):
         assert len(game.players) == 2
         assert user1 in game.players
         assert user2 in game.players
+        
+def test_get_games(client):
+    # Create test games in the database
+    with client.application.app_context():
+        game1 = Game(date=date(2023, 9, 1), start_time=time(10, 0, 0), end_time=time(12, 0, 0), court_id=1)
+        game2 = Game(date=date(2023, 9, 2), start_time=time(14, 0, 0), end_time=time(16, 0, 0), court_id=2)
+        db.session.add_all([game1, game2])
+        db.session.commit()
+
+    # Simulate an authenticated request by adding authentication headers
+    auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+
+    # Send a GET request to retrieve all games
+    response = client.get('/api/games', headers=auth_headers)
+
+    # Check that the response contains game data
+    assert response.status_code == 200
+
+    # Parse the JSON response and store it in the 'data' variable
+    data = json.loads(response.data.decode())
+
+    assert len(data) == 2  # Assuming two games are created
+    assert data[0]["date"] == "2023-09-01"
+    assert data[1]["date"] == "2023-09-02"
+
+def test_get_game(client):
+    # Create a test game in the database
+    with client.application.app_context():
+        game = Game(date=date(2023, 9, 1), start_time=time(10, 0, 0), end_time=time(12, 0, 0), court_id=1)
+        db.session.add(game)
+        db.session.commit()
+
+    # Simulate an authenticated request by adding authentication headers
+    auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+
+    # Send a GET request to retrieve the game by its ID (assuming game ID is 1)
+    response = client.get('/api/games/1', headers=auth_headers)
+
+    # Check that the response contains the game data
+    assert response.status_code == 200
+
+    # Parse the JSON response and store it in the 'data' variable
+    data = json.loads(response.data.decode())
+
+    assert data["date"] == "2023-09-01"
+    assert data["start_time"] == "10:00:00"
