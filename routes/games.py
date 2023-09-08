@@ -8,7 +8,10 @@ games_bp = Blueprint('games', __name__)
 # Route to create a new game
 @games_bp.route('/games', methods=['POST'])
 def create_game():
+    print("Received a POST request to /api/games")
     data = request.get_json()
+    print("Received data:", data)
+    # Rest of your route code
 
     # Extract game information from the request data
     date_str = data.get('date')  # Get date as a string
