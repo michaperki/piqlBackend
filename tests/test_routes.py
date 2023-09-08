@@ -3,7 +3,7 @@
 import json
 import pytest
 from app import create_app, db
-from app.models import Item, User, Court, Game
+from app.models import User, Court, Game
 from datetime import datetime, date, time
 import warnings
 from sqlalchemy.exc import SAWarning
