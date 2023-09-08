@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from app.models import Game, User, Court
 from app import db
 from datetime import datetime
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 games_bp = Blueprint('games', __name__)
 
@@ -91,6 +91,10 @@ def join_game(game_id):
 @games_bp.route('/games', methods=['GET'])
 @jwt_required()
 def get_games():
+    
+    current_user_id = get_jwt_identity()
+    print("Current User ID:", current_user_id)
+    
     games = Game.query.all()
     game_list = []
 
