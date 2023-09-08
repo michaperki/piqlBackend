@@ -1,4 +1,4 @@
-# tests/test_routes.py
+# tests/test_auth.py
 
 import json
 import pytest

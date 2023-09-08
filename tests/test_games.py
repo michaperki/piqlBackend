@@ -178,3 +178,10 @@ def test_get_game(client):
 
     assert data["date"] == "2023-09-01"
     assert data["start_time"] == "10:00:00"
+
+def test_get_games_without_token(client):
+    # Send a GET request to the protected route without a valid token
+    response = client.get('/api/games')
+    
+    # Check that the response indicates an unauthorized access (401)
+    assert response.status_code == 401

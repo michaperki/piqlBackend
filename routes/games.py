@@ -1,11 +1,11 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from app.models import Game, User, Court
 from app import db
 from datetime import datetime
+from flask_jwt_extended import jwt_required
 
 games_bp = Blueprint('games', __name__)
 
-# Route to create a new game
 @games_bp.route('/games', methods=['POST'])
 def create_game():
     print("Received a POST request to /api/games")
@@ -89,6 +89,7 @@ def join_game(game_id):
 
 # Route to get all games
 @games_bp.route('/games', methods=['GET'])
+@jwt_required()
 def get_games():
     games = Game.query.all()
     game_list = []
