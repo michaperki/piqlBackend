@@ -65,7 +65,7 @@ def create_game():
 @games_bp.route('/games/<int:game_id>/join', methods=['POST'])
 def join_game(game_id):
     data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = get_jwt_identity()
 
     # Check if the specified game exists
     game = Game.query.get(game_id)
