@@ -90,15 +90,12 @@ def join_game(game_id):
 # Route to get all games
 @games_bp.route('/games', methods=['GET'])
 def get_games():
-    print("get_games endpoint hit")
-
     games = Game.query.all()
     game_list = []
 
     for game in games:
         # Extract player IDs from the User objects in game.players
         player_ids = [player.id for player in game.players]
-        print("player IDs: ", player_ids)
 
         game_data = {
             "id": game.id,
@@ -116,12 +113,10 @@ def get_games():
 # Route to get a single game by ID
 @games_bp.route('/games/<int:game_id>', methods=['GET'])
 def get_game(game_id):
-    print("get_game endpoint hit")
     game = Game.query.get(game_id)
     if game:
         # Extract player IDs from the User objects in game.players
         player_ids = [player.id for player in game.players]
-        print("player IDs: ", player_ids)
 
         game_data = {
             "id": game.id,
