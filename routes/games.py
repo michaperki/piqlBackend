@@ -106,14 +106,17 @@ def get_games():
 @games_bp.route('/games/<int:game_id>', methods=['GET'])
 def get_game(game_id):
     game = Game.query.get(game_id)
-    if game:        
+    if game:
+        # Extract player IDs from the User objects in game.players
+        player_ids = [player.id for player in game.players]
+
         game_data = {
             "id": game.id,
             "date": str(game.date),
             "start_time": str(game.start_time),
             "end_time": str(game.end_time),
             "court_id": game.court_id,
-            "player_ids": game.players
+            "player_ids": player_ids  # Use the extracted player IDs
         }
         return jsonify(game_data)
     return jsonify({"error": "Game not found"}), 404  # Return a 404 Not Found for missing game
