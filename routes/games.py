@@ -65,7 +65,9 @@ def create_game():
 @games_bp.route('/games/<int:game_id>/join', methods=['POST'])
 @jwt_required()
 def join_game(game_id):
-    data = request.get_json()
+    print("Received a POST request to /api/games/<game_id>/join")
+    print("game_id:", game_id)
+    
     user_id = get_jwt_identity()
 
     # Check if the specified game exists
