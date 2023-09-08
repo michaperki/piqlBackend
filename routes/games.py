@@ -32,6 +32,10 @@ def create_game():
     # Create a new game
     game = Game(date=date, start_time=start_time, end_time=end_time, court_id=court_id)
 
+    # Ensure that player_ids is a list, even for a single player
+    if not isinstance(player_ids, list):
+        player_ids = [player_ids]
+
     # Add players to the game (many-to-many relationship)
     for player_id in player_ids:
         if player_id:
