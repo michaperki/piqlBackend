@@ -4,7 +4,7 @@ import json
 import pytest
 from app import create_app, db
 from app.models import Item, User, Court, Game
-from datetime import datetime
+from datetime import datetime, date, time
 
 @pytest.fixture
 def client():
@@ -187,3 +187,76 @@ def test_delete_court(client):
     response = client.delete('/api/courts/999', headers=auth_headers)
     assert response.status_code == 404
     assert response.json["error"] == "Court not found"
+
+
+def test_create_game(client):
+    # Convert the date string to a Python date object
+    date_str = '2022-12-25'  # Change this to your date string format
+    game_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+    # Create test game data
+    game_data = {
+        "date": game_date.strftime('%Y-%m-%d'),  # Format the date as a string
+        "start_time": "10:00:00",  # Convert to string
+        "end_time": "12:00:00",    # Convert to string
+        "court_id": 1,  # Use an ID for now
+        "players": []  # Initialize an empty list
+    }
+
+    # Simulate an authenticated request by adding authentication headers
+    auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+
+    # Create a test court and users within the same app context
+    with client.application.app_context():
+        court = Court(name="Test Court", address="123 Main St")
+        db.session.add(court)
+
+        user1 = User(email="user1@example.com", password="password1")
+        user2 = User(email="user2@example.com", password="password2")
+        db.session.add_all([user1, user2])
+
+        db.session.commit()
+
+        # Use the actual Court model instance's ID in game_data
+        game_data["court_id"] = court.id
+
+        # Use user IDs in player data
+        game_data["players"] = [user1.id, user2.id]  # Use user IDs here
+
+        # Create a new game and add it to the session
+        game = Game(
+            date=game_date,
+            start_time=time(10, 0, 0),
+            end_time=time(12, 0, 0),
+            court_id=court.id
+        )
+
+        # Add players to the game (many-to-many relationship)
+        for player_id in game_data["players"]:
+            player = User.query.get(player_id)
+            if player:
+                game.players.append(player)
+
+        db.session.add(game)  # Add the game to the session
+        db.session.commit()   # Commit the changes to the database
+
+        # Retrieve the court object within the same session context
+        retrieved_court = Court.query.get(court.id)
+
+        # Send a POST request to create a game
+        response = client.post('/api/games', json=game_data, headers=auth_headers)
+
+        # Check that the response indicates successful game creation
+        assert response.status_code == 201
+        assert response.json["message"] == "Game created successfully"
+
+        # Check that the game is saved in the database
+        game = Game.query.first()
+        assert game is not None
+        assert game.date == game_date  # Ensure game.date is a Python date object
+        assert game.start_time == time(10, 0, 0)
+        assert game.end_time == time(12, 0, 0)
+        assert game.court_id == retrieved_court.id  # Use the retrieved Court object's ID
+        assert len(game.players) == 2
+        assert user1 in game.players
+        assert user2 in game.players

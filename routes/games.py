@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.models import Game, User, Court
 from app import db
+from datetime import datetime
 
 games_bp = Blueprint('games', __name__)
 
@@ -10,31 +11,49 @@ def create_game():
     data = request.get_json()
 
     # Extract game information from the request data
-    date = data.get('date')
-    start_time = data.get('start_time')
-    end_time = data.get('end_time')
+    date_str = data.get('date')  # Get date as a string
+    start_time_str = data.get('start_time')  # Get start_time as a string
+    end_time_str = data.get('end_time')  # Get end_time as a string
     court_id = data.get('court_id')
-    player_ids = data.get('player_ids', [])  # List of player IDs
+    player_ids = data.get('players', [])  # List of player IDs
 
     # Check if the specified court exists
     court = Court.query.get(court_id)
     if not court:
         return jsonify({"error": "Court not found"}), 404
 
+    # Convert the date string to a Python date object
+    date = datetime.strptime(date_str, '%Y-%m-%d').date()
+
+    # Convert the start_time and end_time strings to Python time objects
+    start_time = datetime.strptime(start_time_str, '%H:%M:%S').time()
+    end_time = datetime.strptime(end_time_str, '%H:%M:%S').time()
+
     # Create a new game
     game = Game(date=date, start_time=start_time, end_time=end_time, court_id=court_id)
 
     # Add players to the game (many-to-many relationship)
     for player_id in player_ids:
-        player = User.query.get(player_id)
-        if player:
-            game.players.append(player)
+        if player_id:
+            # Ensure player_id is an integer
+            try:
+                player_id = int(player_id)
+            except ValueError:
+                return jsonify({"error": "Invalid player ID format"}), 400
+
+            # Fetch the User instance associated with player_id
+            player = User.query.filter_by(id=player_id).first()
+            if player:
+                game.players.append(player)
+            else:
+                return jsonify({"error": "Player not found"}), 404
 
     # Add the game to the database
     db.session.add(game)
     db.session.commit()
 
     return jsonify({"message": "Game created successfully"}), 201  # Return a 201 Created status
+
 
 # Route to get all games
 @games_bp.route('/games', methods=['GET'])
@@ -46,7 +65,7 @@ def get_games():
         "start_time": str(game.start_time),
         "end_time": str(game.end_time),
         "court_id": game.court_id,
-        "players": [{"id": player.id, "email": player.email} for player in game.players]
+        "player_ids": game.players
     } for game in games]
 
     return jsonify(game_list)
@@ -60,4 +79,9 @@ def get_game(game_id):
             "id": game.id,
             "date": str(game.date),
             "start_time": str(game.start_time),
-            "end_time":
+            "end_time": str(game.end_time),
+            "court_id": game.court_id,
+            "player_ids": game.players
+        }
+        return jsonify(game_data)
+    return jsonify({"error": "Game not found"}), 404  # Return a 404 Not Found for missing game
