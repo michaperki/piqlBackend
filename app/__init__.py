@@ -29,9 +29,11 @@ def create_app(config_name="development"):
     from routes.auth import auth_bp
     from routes.courts import courts_bp
     from routes.games import games_bp
+    from routes.social import social_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(courts_bp, url_prefix='/api')
     app.register_blueprint(games_bp, url_prefix='/api')
+    app.register_blueprint(social_bp, url_prefix='/api')
 
     return app
