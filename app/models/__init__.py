@@ -5,3 +5,4 @@ from .hours_of_operation import HoursOfOperation
 from .court import Court
 from .game import Game
 from .user_connection import UserConnection
+from .friend_request import FriendRequest
