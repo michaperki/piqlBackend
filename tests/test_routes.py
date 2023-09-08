@@ -65,14 +65,30 @@ def test_login_user(client):
     assert response.status_code == 200
     assert "access_token" in data
     
+# Modify the get_auth_headers function to generate the token if needed
 def get_auth_headers(client, email, password):
-    # Use a function to retrieve authentication headers for a given user
-    # You might need to implement this function based on your token-based authentication system
-    # Example: You may need to log in and obtain a token, then use that token for subsequent requests
-    # For simplicity, you can pass the token directly in headers here.
+    # Check if the user exists, and if not, create the user.
+    with client.application.app_context():
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            # Create a test user if not already existing
+            user_data = {
+                "email": email,
+                "password": password
+            }
+            response = client.post('/auth/register', json=user_data)
+            assert response.status_code == 201
 
-    # Replace the following line with your actual authentication mechanism
-    token = "your_test_token"
+    # Log in and obtain a token
+    login_data = {
+        "email": email,
+        "password": password
+    }
+    response = client.post('/auth/login', json=login_data)
+    assert response.status_code == 200
+    data = json.loads(response.data.decode())
+
+    token = data.get("access_token")
 
     return {"Authorization": f"Bearer {token}"}
 
@@ -188,60 +204,50 @@ def test_delete_court(client):
     assert response.status_code == 404
     assert response.json["error"] == "Court not found"
 
-
-def test_create_game(client):
-    # Convert the date string to a Python date object
+# Add this helper function to create a game
+def create_test_game(client, court_id, players=[]):
     date_str = '2022-12-25'  # Change this to your date string format
     game_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-    # Create test game data
     game_data = {
         "date": game_date.strftime('%Y-%m-%d'),  # Format the date as a string
         "start_time": "10:00:00",  # Convert to string
         "end_time": "12:00:00",    # Convert to string
-        "court_id": 1,  # Use an ID for now
-        "players": []  # Initialize an empty list
+        "court_id": court_id,
+        "players": players
     }
 
-    # Simulate an authenticated request by adding authentication headers
     auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
 
-    # Create a test court and users within the same app context
-    with client.application.app_context():
-        court = Court(name="Test Court", address="123 Main St")
-        db.session.add(court)
+    response = client.post('/api/games', json=game_data, headers=auth_headers)
 
+    return response
+
+# Now you can refactor the test_create_game using the helper function
+def test_create_game(client):
+    with client.application.app_context():
+        # Create test users in the database
         user1 = User(email="user1@example.com", password="password1")
         user2 = User(email="user2@example.com", password="password2")
         db.session.add_all([user1, user2])
-
         db.session.commit()
 
-        # Use the actual Court model instance's ID in game_data
-        game_data["court_id"] = court.id
+        # Create a test court in the database
+        court = Court(name="Test Court", address="123 Main St")
+        db.session.add(court)
+        db.session.commit()
 
-        # Use user IDs in player data
-        game_data["players"] = [user1.id, user2.id]  # Use user IDs here
+        # Create a game using the court and user IDs
+        game_data = {
+            "date": "2022-12-25",
+            "start_time": "10:00:00",
+            "end_time": "12:00:00",
+            "court_id": court.id,
+            "players": [user1.id, user2.id]
+        }
 
-        # Create a new game and add it to the session
-        game = Game(
-            date=game_date,
-            start_time=time(10, 0, 0),
-            end_time=time(12, 0, 0),
-            court_id=court.id
-        )
-
-        # Add players to the game (many-to-many relationship)
-        for player_id in game_data["players"]:
-            player = User.query.get(player_id)
-            if player:
-                game.players.append(player)
-
-        db.session.add(game)  # Add the game to the session
-        db.session.commit()   # Commit the changes to the database
-
-        # Retrieve the court object within the same session context
-        retrieved_court = Court.query.get(court.id)
+        # Simulate an authenticated request by adding authentication headers
+        auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
 
         # Send a POST request to create a game
         response = client.post('/api/games', json=game_data, headers=auth_headers)
@@ -253,10 +259,10 @@ def test_create_game(client):
         # Check that the game is saved in the database
         game = Game.query.first()
         assert game is not None
-        assert game.date == game_date  # Ensure game.date is a Python date object
+        assert game.date == date(2022, 12, 25)
         assert game.start_time == time(10, 0, 0)
         assert game.end_time == time(12, 0, 0)
-        assert game.court_id == retrieved_court.id  # Use the retrieved Court object's ID
+        assert game.court_id == court.id
         assert len(game.players) == 2
         assert user1 in game.players
         assert user2 in game.players
