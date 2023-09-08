@@ -105,6 +105,7 @@ def get_games():
 # Route to get a single game by ID
 @games_bp.route('/games/<int:game_id>', methods=['GET'])
 def get_game(game_id):
+    print("get_game endpoint hit")
     game = Game.query.get(game_id)
     if game:
         # Extract player IDs from the User objects in game.players
