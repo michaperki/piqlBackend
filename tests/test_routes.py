@@ -5,6 +5,8 @@ import pytest
 from app import create_app, db
 from app.models import Item, User, Court, Game
 from datetime import datetime, date, time
+import warnings
+from sqlalchemy.exc import SAWarning
 
 @pytest.fixture
 def client():
@@ -245,6 +247,9 @@ def test_create_game(client):
             "court_id": court.id,
             "players": [user1.id, user2.id]
         }
+
+        # Suppress SAWarnings
+        warnings.filterwarnings("ignore", category=SAWarning)
 
         # Simulate an authenticated request by adding authentication headers
         auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
