@@ -109,6 +109,7 @@ def get_game(game_id):
     if game:
         # Extract player IDs from the User objects in game.players
         player_ids = [player.id for player in game.players]
+        print(player_ids)
 
         game_data = {
             "id": game.id,
