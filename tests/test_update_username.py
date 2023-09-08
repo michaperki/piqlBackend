@@ -35,3 +35,25 @@ def test_update_username(client):
         # Check that the user's username is updated in the database
         updated_user = User.query.get(user.id)
         assert updated_user.username == new_username
+
+
+def test_get_username(client):
+    with client.application.app_context():
+        # Create a test user in the database
+        user = User(email="test@example.com", password="testpassword", username="testuser")
+        db.session.add(user)
+        db.session.commit()
+
+        # Simulate an authenticated request by adding authentication headers
+        auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+
+        # Send a GET request to fetch the current username
+        response = client.get('/api/settings/get_username', headers=auth_headers)
+
+        # Check that the response indicates a successful request
+        assert response.status_code == 200
+
+        # Parse the JSON response and check the username
+        data = response.json
+        assert 'username' in data
+        assert data['username'] == "testuser"
