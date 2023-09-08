@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity  # Import JWT-rela
 
 settings_bp = Blueprint('settings', __name__)
 
-@settings_bp.route('/update_username', methods=['POST'])
+@settings_bp.route('/update_username', methods=['POST', 'PUT'])
 @jwt_required()  # Require JWT authentication to access this route
 def update_username():
     print("update username endpoint hit")
