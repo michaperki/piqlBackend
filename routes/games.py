@@ -54,6 +54,31 @@ def create_game():
 
     return jsonify({"message": "Game created successfully"}), 201  # Return a 201 Created status
 
+# Route to join a game by ID
+@games_bp.route('/games/<int:game_id>/join', methods=['POST'])
+def join_game(game_id):
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    # Check if the specified game exists
+    game = Game.query.get(game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    # Check if the specified user exists
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Check if the user is already in the game
+    if user in game.players:
+        return jsonify({"error": "User is already in the game"}), 400
+
+    # Add the user to the game
+    game.players.append(user)
+    db.session.commit()
+
+    return jsonify({"message": "Joined the game successfully"}), 200
 
 # Route to get all games
 @games_bp.route('/games', methods=['GET'])

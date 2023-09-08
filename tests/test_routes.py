@@ -225,13 +225,11 @@ def create_test_game(client, court_id, players=[]):
 
     return response
 
-# Now you can refactor the test_create_game using the helper function
 def test_create_game(client):
     with client.application.app_context():
         # Create test users in the database
         user1 = User(email="user1@example.com", password="password1")
-        user2 = User(email="user2@example.com", password="password2")
-        db.session.add_all([user1, user2])
+        db.session.add(user1)
         db.session.commit()
 
         # Create a test court in the database
@@ -239,13 +237,13 @@ def test_create_game(client):
         db.session.add(court)
         db.session.commit()
 
-        # Create a game using the court and user IDs
+        # Create a game using the court and user ID
         game_data = {
             "date": "2022-12-25",
             "start_time": "10:00:00",
             "end_time": "12:00:00",
             "court_id": court.id,
-            "players": [user1.id, user2.id]
+            "players": [user1.id]
         }
 
         # Suppress SAWarnings
@@ -268,6 +266,66 @@ def test_create_game(client):
         assert game.start_time == time(10, 0, 0)
         assert game.end_time == time(12, 0, 0)
         assert game.court_id == court.id
+        assert len(game.players) == 1
+        assert user1 in game.players
+
+# Add a new test function for joining a game
+def test_join_game(client):
+    with client.application.app_context():
+        # Create test users in the database
+        user1 = User(email="user1@example.com", password="password1")
+        user2 = User(email="user2@example.com", password="password2")
+        db.session.add_all([user1, user2])
+        db.session.commit()
+
+        # Create a test court in the database
+        court = Court(name="Test Court", address="123 Main St")
+        db.session.add(court)
+        db.session.commit()
+
+        # Create a game using the court and user1
+        game_data = {
+            "date": "2022-12-25",
+            "start_time": "10:00:00",
+            "end_time": "12:00:00",
+            "court_id": court.id,
+            "players": [user1.id]
+        }
+
+        # Suppress SAWarnings
+        warnings.filterwarnings("ignore", category=SAWarning)
+
+        # Simulate an authenticated request by adding authentication headers for user1
+        auth_headers_user1 = get_auth_headers(client, "user1@example.com", "password1")
+
+        # Send a POST request to create a game
+        response = client.post('/api/games', json=game_data, headers=auth_headers_user1)
+
+        # Check that the response indicates successful game creation
+        assert response.status_code == 201
+        assert response.json["message"] == "Game created successfully"
+
+        # Fetch the created game from the database
+        game = Game.query.first()
+
+        # Join the game using user2
+        join_data = {
+            "user_id": user2.id
+        }
+
+        # Simulate an authenticated request by adding authentication headers for user2
+        auth_headers_user2 = get_auth_headers(client, "user2@example.com", "password2")
+
+        # Send a POST request to join the game using the fetched game ID
+        response = client.post(f'/api/games/{game.id}/join', json=join_data, headers=auth_headers_user2)
+
+        # Check that the response indicates successful game join
+        assert response.status_code == 200
+        assert response.json["message"] == "Joined the game successfully"
+
+        # Check that user2 is in the game's player list
+        game = Game.query.first()
+        assert game is not None
         assert len(game.players) == 2
         assert user1 in game.players
         assert user2 in game.players
