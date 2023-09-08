@@ -92,9 +92,6 @@ def join_game(game_id):
 @jwt_required()
 def get_games():
     
-    current_user_id = get_jwt_identity()
-    print("Current User ID:", current_user_id)
-    
     games = Game.query.all()
     game_list = []
 
