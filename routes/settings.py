@@ -8,11 +8,9 @@ settings_bp = Blueprint('settings', __name__)
 @settings_bp.route('/update_username', methods=['POST', 'PUT'])
 @jwt_required()  # Require JWT authentication to access this route
 def update_username():
-    print("update username endpoint hit")
-    print(request.json)
     # Get the user ID from the request (you might use JWT or session for authentication)
-    user_id = request.json.get('user_id')  # Adjust this based on your authentication method
-
+    user_id = get_jwt_identity()
+    
     # Find the user by their ID
     user = User.query.get(user_id)
 
