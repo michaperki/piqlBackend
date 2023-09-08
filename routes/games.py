@@ -63,6 +63,7 @@ def create_game():
 
 # Route to join a game by ID
 @games_bp.route('/games/<int:game_id>/join', methods=['POST'])
+@jwt_required()
 def join_game(game_id):
     data = request.get_json()
     user_id = get_jwt_identity()
