@@ -129,7 +129,7 @@ def get_games_with_usernames():
         player_ids = [player.id for player in game.players]
 
         # Query usernames for the player IDs
-        usernames = [User.query.get(player_id).username for player_id in player_ids]
+        usernames = [User.query.get(player_id).username if User.query.get(player_id) else "(anon)" for player_id in player_ids]
 
         game_data = {
             "id": game.id,
@@ -142,6 +142,7 @@ def get_games_with_usernames():
         game_list.append(game_data)
 
     return jsonify(game_list)
+
 
 
 
