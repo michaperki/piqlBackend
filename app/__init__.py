@@ -25,12 +25,13 @@ def create_app(config_name="development"):
     # Initialize JWTManager for both main and test configurations
     jwt.init_app(app)
     
-    from routes import main_bp, auth_bp, courts_bp, games_bp, social_bp, settings_bp
+    from routes import main_bp, auth_bp, courts_bp, games_bp, social_bp, settings_bp, game_invites_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(courts_bp, url_prefix='/api')
     app.register_blueprint(games_bp, url_prefix='/api')
     app.register_blueprint(social_bp, url_prefix='/api')
+    app.register_blueprint(game_invites_bp, url_prefix='/api')
     app.register_blueprint(settings_bp, url_prefix='/api/settings')
 
     return app
