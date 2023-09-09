@@ -44,11 +44,30 @@ def accept_game_invite(invite_id):
     if not game_invite:
         return jsonify({"error": "Game invite not found or not accessible"}), 404
 
-    # Fetch the current user object from the database
-    current_user = User.query.get(current_user_id)
+    # Remove the invite from the game_invites table
+    game_invite.invites.remove(current_user_id)
 
     # Add the current user to the game's players
-    game_invite.players.append(current_user)
+    game_invite.players.append(current_user_id)
     db.session.commit()
 
     return jsonify({"message": "Game invite accepted"}), 200
+
+# Route to reject a game invite
+@game_invites_bp.route('/game-invites/reject/<int:invite_id>', methods=['POST'])
+@jwt_required()
+def reject_game_invite(invite_id):
+    current_user_id = get_jwt_identity()
+
+    # Query the game_invites table to find the game invite by ID
+    game_invite = Game.query.filter(Game.invites.any(id=current_user_id), Game.id == invite_id).first()
+
+    if not game_invite:
+        return jsonify({"error": "Game invite not found or not accessible"}), 404
+
+    # Remove the current user from the game's invites
+    user_to_remove = User.query.get(current_user_id)
+    game_invite.invites.remove(user_to_remove)
+    db.session.commit()
+
+    return jsonify({"message": "Game invite rejected"}), 200
