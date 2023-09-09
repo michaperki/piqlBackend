@@ -9,3 +9,4 @@ from .courts import courts_bp
 from .games import games_bp
 from .social import social_bp
 from .settings import settings_bp
+from .game_invites import game_invites_bp
