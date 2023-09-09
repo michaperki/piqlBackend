@@ -118,17 +118,18 @@ def join_game(game_id):
 
     return jsonify({"message": "Joined the game successfully"}), 200
 
-# Route to get all games
+# Route to get all games with usernames
 @games_bp.route('/games', methods=['GET'])
 @jwt_required()
-def get_games():
-    
+def get_games_with_usernames():
     games = Game.query.all()
     game_list = []
 
     for game in games:
-        # Extract player IDs from the User objects in game.players
         player_ids = [player.id for player in game.players]
+
+        # Query usernames for the player IDs
+        usernames = [User.query.get(player_id).username for player_id in player_ids]
 
         game_data = {
             "id": game.id,
@@ -136,11 +137,12 @@ def get_games():
             "start_time": str(game.start_time),
             "end_time": str(game.end_time),
             "court_id": game.court_id,
-            "player_ids": player_ids  # Use the extracted player IDs
+            "usernames": usernames,  # Use the queried usernames
         }
         game_list.append(game_data)
 
     return jsonify(game_list)
+
 
 
 # Route to get a single game by ID
