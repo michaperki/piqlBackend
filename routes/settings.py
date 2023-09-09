@@ -77,6 +77,11 @@ def complete_onboarding():
 
     # Mark the user as onboarded
     user.onboarded = True
+    
+    # Assign the skill level and username from the request
+    data = request.get_json()
+    user.skill_level = data['skill_level']
+    user.username = data['username']
 
     # Commit the changes to the database
     db.session.commit()

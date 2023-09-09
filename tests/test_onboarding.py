@@ -40,8 +40,14 @@ def test_complete_onboarding(client):
         # Simulate an authenticated request by adding authentication headers
         auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
 
-        # Send a POST request to complete onboarding
-        response = client.post('/api/settings/complete-onboarding', headers=auth_headers)
+        # Define the request JSON data including skill_level and username
+        data = {
+            "skill_level": 5,  # Replace with the desired skill level
+            "username": "test_user"  # Replace with the desired username
+        }
+
+        # Send a POST request to complete onboarding with the updated data
+        response = client.post('/api/settings/complete-onboarding', json=data, headers=auth_headers)
 
         # Check that the response indicates successful onboarding completion
         assert response.status_code == 200
@@ -50,3 +56,5 @@ def test_complete_onboarding(client):
         # Check that the user's onboarded status is updated in the database
         updated_user = User.query.get(user.id)
         assert updated_user.onboarded is True
+        assert updated_user.skill_level == 5  # Adjust this assertion
+        assert updated_user.username == "test_user"  # Adjust this assertion
