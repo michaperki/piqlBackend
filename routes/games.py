@@ -7,11 +7,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 games_bp = Blueprint('games', __name__)
 
 @games_bp.route('/games', methods=['POST'])
+@jwt_required()
 def create_game():
-    print("Received a POST request to /api/games")
     data = request.get_json()
-    print("Received data:", data)
-    # Rest of your route code
 
     # Extract game information from the request data
     date_str = data.get('date')  # Get date as a string

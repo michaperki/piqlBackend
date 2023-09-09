@@ -19,7 +19,7 @@ def create_test_game(client, court_id, players=[]):
         "start_time": "10:00:00",  # Convert to string
         "end_time": "12:00:00",    # Convert to string
         "court_id": court_id,
-        "players": players
+        "players": players,
     }
 
     auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
@@ -46,7 +46,7 @@ def test_create_game(client):
             "start_time": "10:00:00",
             "end_time": "12:00:00",
             "court_id": court.id,
-            "players": [user1.id]
+            "players": [user1.id],
         }
 
         # Suppress SAWarnings

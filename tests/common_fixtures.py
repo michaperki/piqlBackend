@@ -4,6 +4,7 @@ import pytest
 from app import create_app, db
 import json
 from app.models import User
+from sqlalchemy.orm import relationship
 
 @pytest.fixture
 def client():

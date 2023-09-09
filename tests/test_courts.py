@@ -8,6 +8,7 @@ from datetime import datetime, date, time
 import warnings
 from sqlalchemy.exc import SAWarning
 from .common_fixtures import client, get_auth_headers
+from sqlalchemy.orm import relationship
 
 def test_get_courts(client):
     # Create test court data

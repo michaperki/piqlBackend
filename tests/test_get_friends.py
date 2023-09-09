@@ -4,6 +4,7 @@ import pytest
 from app import create_app, db
 from app.models import User, UserConnection, FriendRequest
 from .common_fixtures import client, get_auth_headers
+from sqlalchemy.orm import relationship
 
 def test_get_friends(client):
     # Create test users in the database
