@@ -33,19 +33,22 @@ def get_game_invites():
 
 
 # Route to accept a game invite
-@game_invites_bp.route('/game-invites/accept/<int:invite_id>', methods=['POST'])
+@game_invites_bp.route('/game-invites/accept/<int:game_id>', methods=['POST'])
 @jwt_required()
-def accept_game_invite(invite_id):
+def accept_game_invite(game_id):
     # Get the current user
-    current_user = get_jwt_identity()
-    if current_user is None:
+    current_user_id = get_jwt_identity()
+    if current_user_id is None:
         return jsonify({"msg": "User not found"}), 404
-
-    # Retrieve the game invite
-    game_invite = Game.query.get(invite_id)
+    
+    # This line should retrieve the game by its ID, not the current user's ID
+    # Replace it with the correct query
+    game_invite = Game.query.get(game_id)
 
     if game_invite is None:
         return jsonify({"msg": "Game invite not found"}), 404
+
+    current_user = User.query.get(current_user_id)
 
     # Check if the current user is invited to the game
     if current_user not in game_invite.invites:
@@ -60,13 +63,14 @@ def accept_game_invite(invite_id):
     return jsonify({"msg": "Game invite accepted"}), 200
 
 # Route to reject a game invite
-@game_invites_bp.route('/game-invites/reject/<int:invite_id>', methods=['POST'])
+@game_invites_bp.route('/game-invites/reject/<int:game_id>', methods=['POST'])
 @jwt_required()
-def reject_game_invite(invite_id):
+def reject_game_invite(game_id):
     current_user_id = get_jwt_identity()
 
-    # Query the game_invites table to find the game invite by ID
-    game_invite = Game.query.filter(Game.invites.any(id=current_user_id), Game.id == invite_id).first()
+    # There is an issue here; you are using 'invite_id' which is not defined
+    # Replace 'invite_id' with 'game_id'
+    game_invite = Game.query.filter(Game.invites.any(id=current_user_id), Game.id == game_id).first()
 
     if not game_invite:
         return jsonify({"error": "Game invite not found or not accessible"}), 404
