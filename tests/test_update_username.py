@@ -58,3 +58,5 @@ def test_get_username(client):
         data = response.json
         assert 'username' in data
         assert data['username'] == "testuser"
+        
+        

@@ -47,3 +47,38 @@ def get_username():
 
     # Return the username as JSON
     return jsonify({'username': user.username})
+
+@settings_bp.route('/onboarding-status', methods=['GET'])
+@jwt_required()  # Require JWT authentication to access this route
+def get_onboarding_status():
+    # Get the user ID from the JWT token
+    user_id = get_jwt_identity()
+
+    # Query the user's onboarding status from the database
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    # Return the onboarding status as JSON
+    return jsonify({'onboarded': user.onboarded})
+
+@settings_bp.route('/complete-onboarding', methods=['POST'])
+@jwt_required()  # Require JWT authentication to access this route
+def complete_onboarding():
+    # Get the user ID from the JWT token
+    user_id = get_jwt_identity()
+
+    # Query the user by their ID
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    # Mark the user as onboarded
+    user.onboarded = True
+
+    # Commit the changes to the database
+    db.session.commit()
+
+    return jsonify({'message': 'Onboarding completed successfully'})

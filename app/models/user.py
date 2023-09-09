@@ -8,11 +8,15 @@ class User(db.Model):
         db.String(255), nullable=False
     )  # Rename 'password' to 'password_hash'
     username = db.Column(db.String(80), unique=True, nullable=True)  # Add the 'username' field
+    onboarded = db.Column(db.Boolean, default=False)  # New onboarded field
+    skill = db.Column(db.Integer, nullable=True)  # New skill level field
 
-    def __init__(self, email, password, username=None):  # Update the constructor
+    def __init__(self, email, password, username=None, onboarded=False, skill=None):
         self.email = email
         self.set_password(password)
-        self.username = username  # Set the 'username' field
+        self.username = username
+        self.onboarded = onboarded
+        self.skill = skill
 
     def set_password(self, password):
         # Hash and store the password as a string
@@ -26,7 +30,9 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
-            "username": self.username,  # Include the 'username' attribute
+            "username": self.username,
+            "onboarded": self.onboarded,  # Include the 'onboarded' attribute
+            "skill": self.skill,  # Include the 'skill' attribute
             # Add other user attributes here if needed
         }
 
