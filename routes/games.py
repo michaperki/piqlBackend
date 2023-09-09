@@ -130,13 +130,16 @@ def get_games_with_usernames():
 
         # Query usernames for the player IDs
         usernames = [User.query.get(player_id).username if User.query.get(player_id) else "(anon)" for player_id in player_ids]
+        
+        # Query court name for the court ID
+        court_name = Court.query.get(game.court_id).name if Court.query.get(game.court_id) else "(private court)"
 
         game_data = {
             "id": game.id,
             "date": str(game.date),
             "start_time": str(game.start_time),
             "end_time": str(game.end_time),
-            "court_id": game.court_id,
+            "court_id": court_name,  # Use the queried court name
             "usernames": usernames,  # Use the queried usernames
         }
         game_list.append(game_data)
