@@ -35,14 +35,14 @@ def get_game_invites():
 # Route to accept a game invite
 @game_invites_bp.route('/game-invites/accept/<int:invite_id>', methods=['POST'])
 @jwt_required()
-def accept_game_invite(game_id):
+def accept_game_invite(invite_id):
     # Get the current user
     current_user = get_jwt_identity()
     if current_user is None:
         return jsonify({"msg": "User not found"}), 404
 
     # Retrieve the game invite
-    game_invite = Game.query.get(game_id)
+    game_invite = Game.query.get(invite_id)
 
     if game_invite is None:
         return jsonify({"msg": "Game invite not found"}), 404
