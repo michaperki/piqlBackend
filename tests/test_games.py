@@ -8,6 +8,7 @@ from datetime import datetime, date, time
 import warnings
 from sqlalchemy.exc import SAWarning
 from .common_fixtures import client, get_auth_headers
+from flask_jwt_extended import create_access_token
     
 # Add this helper function to create a game
 def create_test_game(client, court_id, players=[]):
@@ -40,6 +41,9 @@ def test_create_game(client):
         db.session.add(court)
         db.session.commit()
 
+        # Create an access token for the test user
+        access_token = create_access_token(identity=user1.id)
+
         # Create a game using the court and user ID
         game_data = {
             "date": "2022-12-25",
@@ -49,11 +53,8 @@ def test_create_game(client):
             "players": [user1.id],
         }
 
-        # Suppress SAWarnings
-        warnings.filterwarnings("ignore", category=SAWarning)
-
-        # Simulate an authenticated request by adding authentication headers
-        auth_headers = get_auth_headers(client, "test@example.com", "testpassword")
+        # Include the access token in the authentication headers
+        auth_headers = {"Authorization": f"Bearer {access_token}"}
 
         # Send a POST request to create a game
         response = client.post('/api/games', json=game_data, headers=auth_headers)
@@ -71,6 +72,66 @@ def test_create_game(client):
         assert game.court_id == court.id
         assert len(game.players) == 1
         assert user1 in game.players
+
+def test_invite_to_game(client):
+    with client.application.app_context():
+        # Create test users in the database
+        host_user = User(email="host@example.com", password="hostpassword")
+        player_user = User(email="player@example.com", password="playerpassword")
+        db.session.add_all([host_user, player_user])
+        db.session.commit()
+
+        # Create a test court in the database
+        court = Court(name="Test Court", address="123 Main St")
+        db.session.add(court)
+        db.session.commit()
+
+        # Create a game using the court and host_user
+        game_data = {
+            "date": "2022-12-25",
+            "start_time": "10:00:00",
+            "end_time": "12:00:00",
+            "court_id": court.id,
+            "players": [host_user.id],
+        }
+
+        # Suppress SAWarnings
+        warnings.filterwarnings("ignore", category=SAWarning)
+
+        # Simulate an authenticated request by adding authentication headers for host_user
+        auth_headers_host = get_auth_headers(client, "host@example.com", "hostpassword")
+
+        # Send a POST request to create a game
+        response = client.post('/api/games', json=game_data, headers=auth_headers_host)
+
+        # Check that the response indicates successful game creation
+        assert response.status_code == 201
+
+        # Fetch the created game from the database
+        game = Game.query.first()
+
+        # Invite player_user to the game
+        invite_data = {
+            "game_id": game.id,
+            "player_id": player_user.id
+        }
+
+        # Simulate an authenticated request by adding authentication headers for host_user
+        auth_headers_host = get_auth_headers(client, "host@example.com", "hostpassword")
+
+        # Send a POST request to invite player_user to the game
+        response = client.post('/api/games/invite', json=invite_data, headers=auth_headers_host)
+
+        # Check that the response indicates successful game invitation
+        assert response.status_code == 201
+        assert response.json["message"] == "Player invited to the game"
+
+        # Check that player_user is in the game's invites list
+        game = Game.query.first()
+        assert game is not None
+        assert len(game.invites) == 1
+        assert player_user in game.invites
+
 
 # Add a new test function for joining a game
 def test_join_game(client):

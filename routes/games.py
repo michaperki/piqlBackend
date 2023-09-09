@@ -10,13 +10,14 @@ games_bp = Blueprint('games', __name__)
 @jwt_required()
 def create_game():
     data = request.get_json()
+    host_id = get_jwt_identity()
 
     # Extract game information from the request data
-    date_str = data.get('date')  # Get date as a string
-    start_time_str = data.get('start_time')  # Get start_time as a string
-    end_time_str = data.get('end_time')  # Get end_time as a string
+    date_str = data.get('date')
+    start_time_str = data.get('start_time')
+    end_time_str = data.get('end_time')
     court_id = data.get('court_id')
-    player_ids = data.get('players', [])  # List of player IDs
+    player_ids = data.get('players', [])
 
     # Check if the specified court exists
     court = Court.query.get(court_id)
@@ -33,23 +34,22 @@ def create_game():
     # Create a new game
     game = Game(date=date, start_time=start_time, end_time=end_time, court_id=court_id)
 
-    # Ensure that player_ids is a list, even for a single player
-    if not isinstance(player_ids, list):
-        player_ids = [player_ids]
-
-    # Add players to the game (many-to-many relationship)
+    # Iterate through player_ids to add players to the game
     for player_id in player_ids:
         if player_id:
-            # Ensure player_id is an integer
             try:
                 player_id = int(player_id)
             except ValueError:
                 return jsonify({"error": "Invalid player ID format"}), 400
 
-            # Fetch the User instance associated with player_id
             player = User.query.filter_by(id=player_id).first()
             if player:
-                game.players.append(player)
+                if player_id == host_id:
+                    # Add host to game.players
+                    game.players.append(player)
+                else:
+                    # Add other players to game.invites
+                    game.invites.append(player)
             else:
                 return jsonify({"error": "Player not found"}), 404
 
@@ -57,7 +57,37 @@ def create_game():
     db.session.add(game)
     db.session.commit()
 
-    return jsonify({"message": "Game created successfully"}), 201  # Return a 201 Created status
+    return jsonify({"message": "Game created successfully"}), 201
+
+@games_bp.route('/games/invite', methods=['POST'])
+@jwt_required()
+def invite_to_game():
+    data = request.get_json()
+    user_id = get_jwt_identity()
+
+    # Extract game and player information from the request data
+    game_id = data.get('game_id')
+    player_id = data.get('player_id')
+
+    # Check if the specified game exists
+    game = Game.query.get(game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    # Check if the player to be invited exists
+    player = User.query.get(player_id)
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+
+    # Check if the player is already invited to the game
+    if player in game.invites:
+        return jsonify({"error": "Player is already invited to this game"}), 400
+
+    # Add the player to the game invites
+    game.invites.append(player)
+    db.session.commit()
+
+    return jsonify({"message": "Player invited to the game"}), 201  # Return a 201 Created status
 
 # Route to join a game by ID
 @games_bp.route('/games/<int:game_id>/join', methods=['POST'])

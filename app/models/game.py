@@ -7,6 +7,7 @@ class Game(db.Model):
     end_time = db.Column(db.Time, nullable=False)
     court_id = db.Column(db.Integer, db.ForeignKey("court.id"), nullable=False)
     players = db.relationship("User", secondary="game_players", backref="games_played")
+    invites = db.relationship("User", secondary="game_invites", backref="games_invited_to")
 
     def __init__(self, date, start_time, end_time, court_id):
         self.date = date
@@ -21,6 +22,13 @@ class Game(db.Model):
 # Define a many-to-many relationship between Game and User for players
 game_players = db.Table(
     "game_players",
+    db.Column("game_id", db.Integer, db.ForeignKey("game.id"), primary_key=True),
+    db.Column("user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
+)
+
+# Define a many-to-many relationship between Game and User for game invites
+game_invites = db.Table(
+    "game_invites",
     db.Column("game_id", db.Integer, db.ForeignKey("game.id"), primary_key=True),
     db.Column("user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True),
 )
