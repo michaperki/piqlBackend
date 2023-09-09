@@ -246,3 +246,40 @@ def test_get_games_without_token(client):
     
     # Check that the response indicates an unauthorized access (401)
     assert response.status_code == 401
+    
+def test_get_user_games(client):
+    # Create test users in the database
+    with client.application.app_context():
+        user1 = User(email="test1@gmail.com", password="password1")
+        user2 = User(email="test2@gmail.com", password="password2")
+        db.session.add_all([user1, user2])
+        db.session.commit()
+        
+        # Create test games in the database
+        game1 = Game(date=date(2023, 9, 1), start_time=time(10, 0, 0), end_time=time(12, 0, 0), court_id=1) 
+        game2 = Game(date=date(2023, 9, 2), start_time=time(14, 0, 0), end_time=time(16, 0, 0), court_id=2)
+        game1.players.append(user1)
+        game2.players.append(user2)
+        db.session.add_all([game1, game2])
+        db.session.commit()
+        
+        # Simulate an authenticated request by adding authentication headers for user1
+        auth_headers_user1 = get_auth_headers(client, "test1@gmail.com", "password1")
+        
+        # Send a GET request to retrieve all games for user1
+        response = client.get('/api/games/user', headers=auth_headers_user1)
+        
+        # Check that the response contains game data
+        assert response.status_code == 200
+        
+        # Parse the JSON response and store it in the 'data' variable
+        data = json.loads(response.data.decode())
+        
+        assert len(data) == 1  # Assuming one game is created
+        assert data[0]["date"] == "2023-09-01"
+        assert data[0]["start_time"] == "10:00:00"
+        
+        # Check that user2 is not listed as a player
+        assert user2.id not in [user["id"] for user in data]
+        
+        

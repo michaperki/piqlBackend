@@ -91,3 +91,4 @@ def test_reject_game_invite(client):
         assert response.status_code == 200
         data = json.loads(response.data.decode())
         assert len(data) == 0
+

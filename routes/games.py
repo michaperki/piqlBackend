@@ -161,3 +161,29 @@ def get_game(game_id):
         }
         return jsonify(game_data)
     return jsonify({"error": "Game not found"}), 404  # Return a 404 Not Found for missing game
+
+@games_bp.route('/games/user', methods=['GET'])
+@jwt_required()
+def get_user_games():
+    user_id = get_jwt_identity()
+    
+    # Query the games associated with the user
+    games = Game.query.filter(Game.players.any(id=user_id)).all()
+    
+    game_list = []
+
+    for game in games:
+        # Extract player IDs from the User objects in game.players
+        player_ids = [player.id for player in game.players]
+
+        game_data = {
+            "id": game.id,
+            "date": str(game.date),
+            "start_time": str(game.start_time),
+            "end_time": str(game.end_time),
+            "court_id": game.court_id,
+            "player_ids": player_ids  # Use the extracted player IDs
+        }
+        game_list.append(game_data)
+
+    return jsonify(game_list)
