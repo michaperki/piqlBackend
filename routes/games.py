@@ -139,7 +139,7 @@ def get_games_with_usernames():
             "date": str(game.date),
             "start_time": str(game.start_time),
             "end_time": str(game.end_time),
-            "court_id": court_name,  # Use the queried court name
+            "court_name": court_name,  # Use the queried court name
             "usernames": usernames,  # Use the queried usernames
         }
         game_list.append(game_data)
